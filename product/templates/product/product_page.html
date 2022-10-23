@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load mathfilters %}
+
+{% block content %}
+    {% if product.photo %}<img src="{{product.photo.url}}">{%endif%}
+    {{ product.title }} <br>
+    Остаток: {{product.stock}} <br>
+    Цена: {{ product.price|mul:rate_select_currency }} {{disp_select_currency}}<br>
+    {% if product.file_digit %}{{product.file_digit.url}}{%endif%}
+    <br><br>
+    {%if rating_product%}
+    <b><span id='rating'>Рейтинг товара: {{rating_product}}</span></b>
+    {%else%}
+    <b><span id='rating'>Рейтинг отсутствует. Никто не поставил оценку.</span></b>
+    {%endif%}
+    {%if request.user.is_authenticated%}
+        <div id='block_rating'>    
+            Выбери оценку: {{select_rating|safe}}
+        </div>
+    {%endif%} <br><br>
+        <div class="form_add_basket">
+            <input type="number" step='1' min=1 name='cnt' start='1' value="1" id="cnt_product">
+            <button type='submit' onclick="add2basket('{{product.id}}')" id="btn_add2basket">Добавить в корзину</button> <br><br>
+            {%if request.user.is_authenticated%}
+                {% if is_wishlist %}
+                    <button type="button" onclick="wishlist('{{product.id}}', 'del')" id='btn_wishlist'>Удалить из вишлиста</button>
+                {%else%}
+                    <button type="button" onclick="wishlist('{{product.id}}', 'add')" id='btn_wishlist'>Добавить в вишлист</button>
+                {%endif%} <br> <br>
+                {% if is_sub_edit_price %}
+                    <div>Вы подписаны на изменение цены</div>
+                    <button type="button" onclick="subeditprice('{{product.id}}', 'del')" id='btn_subeditprice'>Отписаться</button>
+                {%else%}
+                    <button type="button" onclick="subeditprice('{{product.id}}', 'add')" id='btn_subeditprice'>Подписаться на изменение цены</button>
+                {%endif%} <br><br>
+                {% if product.stock == 0 %}
+                    {% if is_sub_active_product %}
+                        <div>Мы сообщим, когда товар будет в наличии</div>
+                        <button type="button" onclick="subactivateproduct('{{product.id}}', 'del')" id='btn_subactivateproduct'>Не сообщать, когда товар будет в наличии.</button>
+                    {%else%}
+                        <button type="button" onclick="subactivateproduct('{{product.id}}', 'add')" id='btn_subactivateproduct'>Сообщить, когда товар будет в наличии.</button>
+                    {%endif%}
+                {%endif%} <br><br>
+
+
+            {%endif%}
+        </div>
+    </form>
+
+    {%if viewed_products %}
+    <br><br><h2>Просмотренные товары:</h2>
+    <div class="card-group">
+    {{viewed_products|safe}}
+    </div>
+    {%endif%}
+    {%if recommend_pr %}
+    <br><br><h2>Похожие товары:</h2>
+    <div class="card-group">
+    {{recommend_pr|safe}}
+    </div>
+    {%endif%}
+    {%if buy_together %}
+    <br><br><h2>Покупают вместе</h2>
+    <div class="card-group">
+    {{buy_together|safe}}
+    </div>
+    {%endif%}
+
+    <script>
+        function add2basket(id){
+            var cnt = $('#cnt_product').val();
+            $.ajax({
+                type: 'POST', url: '{% url "basket_page" %}',
+                data:{'csrfmiddlewaretoken':scrf_token, 'cnt':cnt, 'type':'add', 'id':id,},
+                dataType: 'json',
+                cache: false,
+                success: function(data){
+                    if (data.success){
+                        var $item = $('<span class="msg">'+ data.success +'</span>');
+                        $item.appendTo('.form_add_basket').delay(4000).slideUp(500, function(){
+                                $item.remove();
+                        });
+                    }
+                    else{
+                        var $item = $('<span class="msg">'+ data.error +'</span>');
+                        $item.appendTo('.form_add_basket').delay(4000).slideUp(500, function(){
+                                $item.remove();
+                        });
+                    }
+                }
+            });
+    }
+        function wishlist(id, type_act){
+            var cnt = $('#cnt_product').val();
+            $.ajax({
+                type: 'POST', url: '{% url "wishlist" %}',
+                data:{'csrfmiddlewaretoken':scrf_token, 'type':type_act, 'id':id,},
+                dataType: 'json',
+                cache: false,
+                success: function(data){
+                    if (data.success){
+                        var $item = $('<span class="msg">'+ data.success.msg +'</span>');
+                        if (type_act=='add'){
+                            $('#btn_wishlist').attr('onclick', 'wishlist({{product.id}}, "del")');
+                            $('#btn_wishlist').text('Удалить из вишлиста');
+                        }
+                        else if(type_act=='del'){
+                            $('#btn_wishlist').attr('onclick', 'wishlist({{product.id}}, "add")');
+                            $('#btn_wishlist').text('Добавить в вишлист');
+                        }
+                        $item.appendTo('.form_add_basket').delay(4000).slideUp(500, function(){
+                                $item.remove();
+                        });
+                    }
+                }
+            });
+    }
+        function subeditprice(id, type_act){
+            $.ajax({
+                type: 'POST', url: '{% url "subeditprice" %}',
+                data:{'csrfmiddlewaretoken':scrf_token, 'type':type_act, 'id':id,},
+                dataType: 'json',
+                cache: false,
+                success: function(data){
+                    if (data.success){
+                        var $item = $('<span class="msg">'+ data.success.msg +'</span>');
+                        if (type_act=='add'){
+                            $('#btn_subeditprice').attr('onclick', 'subeditprice({{product.id}}, "del")');
+                            $('#btn_subeditprice').text('Отписаться');
+                        }
+                        else if(type_act=='del'){
+                            $('#btn_subeditprice').attr('onclick', 'subeditprice({{product.id}}, "add")');
+                            $('#btn_subeditprice').text('Подписаться на изменение цен.');
+                        }
+                        $item.appendTo('.form_add_basket').delay(4000).slideUp(500, function(){
+                                $item.remove();
+                        });
+                    }
+                }
+            });
+    }
+        function subactivateproduct(id, type_act){
+            $.ajax({
+                type: 'POST', url: '{% url "subactivateproduct" %}',
+                data:{'csrfmiddlewaretoken':scrf_token, 'type':type_act, 'id':id,},
+                dataType: 'json',
+                cache: false,
+                success: function(data){
+                    if (data.success){
+                        var $item = $('<span class="msg">'+ data.success.msg +'</span>');
+                        if (type_act=='add'){
+                            $('#btn_subactivateproduct').attr('onclick', 'subactivateproduct({{product.id}}, "del")');
+                            $('#btn_subactivateproduct').text('Не сообщать, когда товар будет в наличии.');
+                        }
+                        else if(type_act=='del'){
+                            $('#btn_subactivateproduct').attr('onclick', 'subactivateproduct({{product.id}}, "add")');
+                            $('#btn_subactivateproduct').text('Сообщить, когда товар будет в наличии.');
+                        }
+                        $item.appendTo('.form_add_basket').delay(4000).slideUp(500, function(){
+                                $item.remove();
+                        });
+                    }
+                }
+            });
+    }
+    function edit_ratign(id){
+        var rating = $('#rating_product').val();
+        $.ajax({
+                type: 'POST', url: '{% url "rating_product" %}',
+                data:{'csrfmiddlewaretoken':scrf_token, 'mark':rating, 'id':id,},
+                dataType: 'json',
+                cache: false,
+                success: function(data){
+                    if (data.success){
+                        var $item = $('<span class="msg">'+ data.success +'</span>');
+                        $item.appendTo('#block_rating').delay(4000).slideUp(500, function(){
+                                $item.remove();
+                        });
+                        if(data.new_avg){
+                            $('#rating').text('Рейтинг товара: '+data.new_avg)
+                        }else{
+                        $('#rating').text('Рейтинг отсутствует. Никто не поставил оценку.')
+                    }}
+                },
+                error: function(data){console.log(data);}
+            });
+    }
+    </script>
+{% endblock %}

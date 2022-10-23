@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% for msg in messages%}
+    <div {%if msg.support_user%} style="background-color: darkgrey;"{%endif%}>
+        {{msg.message|linebreaks }}
+    </div>
+{%endfor%}
+<form action="" method="POST">
+    {% csrf_token %}
+    Введи ответ:
+    {{form}}
+    {%if ticket_status%}{{ticket_status}}{%endif%}
+    <button>Ответить</button>
+</form>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load mathfilters %}
+
+{% block content %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+<!-- Модальное окно -->
+<div class="modal fade" id="flipFlop" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="modalLabel">Сообщение</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Закрыть">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+<table class="table">
+    <thead class="thead-light">
+      <tr>
+        <th scope="col">№</th>
+        <th scope="col">Title</th>
+        <th scope="col">price</th>
+        <th scope="col">QTY</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+        {% for id, product in products.items%}
+            <tr>
+                <th scope="row">{{ forloop.counter }}</th>
+                <td><a href="{% url 'product_page' id %}">{{ product.title }}</a></td>
+                <td>{{ product.price|mul:rate_select_currency }} {{disp_select_currency}}</td>
+                <td><input onchange = "edit_qty({{product.id}}, this.value)" type="number" value="{{ product.qty }}"></td>
+                <td><button type='submit' onclick="del_basket('{{product.id}}')">X</button></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+  <form action="" method="POST" id='order_info_form'>
+    {%csrf_token%}
+
+  {% for delivery in all_delivery%}
+    <input type="radio" name = 'delivery' value="{{delivery.id}}" id="">
+    <b>{{delivery.name}}</b>
+    <span id='desc_del_{{delivery.id}}'>{{delivery.description}}
+    <span class='desc_info'></span>
+    </span>
+    <br>
+  {%endfor%}
+  PROMO:  <input type="text" name ='promo_code' id='promo_code'><button type="button" onclick="is_promo()" id="btn_promo">Проверить</button><br><br>
+  <input type='hidden' id ='delivery_department' name="delivery_department" value=''>
+
+  Номер телефона: <input type="text" name = 'phone_number'><br><br>
+  ФИО: <input type="text" name = 'full_name'><br><br>
+  Комментарий: <br><textarea name = 'notes' rows = "5" cols="45"></textarea><br>
+  <button type="button" onclick="create_order()">Оформить</button>
+  </form>
+  <div id="sum_info">
+    <p>Общая стоимость: <span class='total_cost'>{{total_cost|mul:rate_select_currency |floatformat:2 }} {{disp_select_currency}}</span></p>
+    <p><span class = 'cost_delivery'></span></p>
+  </div>
+  <script>
+    function del_basket(id){
+      $.ajax({
+        type: 'POST', url: '{% url "basket_page" %}',
+        data:{'csrfmiddlewaretoken':scrf_token, 'type':'del', 'id':id,},
+        dataType: 'json',
+        cache: false,
+        success: function(data){
+          if (data.success){
+            $('table tbody').html(data.responce);
+            
+          }
+        }
+      });
+    }
+    function edit_qty(id_p, val_qty){
+      console.log(id_p, val_qty);
+      $.ajax({
+        type: 'POST', url: '{% url "basket_page" %}',
+        data:{'csrfmiddlewaretoken':scrf_token, 'type':'add', 'id':id_p, 'cnt':val_qty, 'type_basket':'edit'},
+        dataType: 'json',
+        cache: false,
+        success: function(data){
+          if (data.success){
+            $('.total_cost').text(data.total_cost);
+            
+          }
+        }
+      });
+    }
+    function select_delivery (type_v, type_d, ref = undefined){
+      if (type_d == 'novaposhta'){
+        if (type_v == 'city'){
+          $('.warehouses_novaposhta_delivery').remove();
+        }
+        else if (type_v == 'region'){
+          $('.city_novaposhta_delivery').remove();
+          
+        }
+        
+      }
+      $.ajax({
+        type:'POST', url: '{% url "calc_delivery" %}',
+        data:{'csrfmiddlewaretoken':scrf_token, 'sel_val':$('.'+type_v+'_'+type_d+'_delivery').val(), 'type_d':type_d, 'type_v':type_v, 'ref':ref},
+        dataType: 'json',
+        cache: false,
+        success: function(data){
+          console.log('data.cost')
+          console.log(data.cost)
+          if(data.in_html){
+            console.log(this.value)
+            $('#desc_del_'+id_delivery).append(data.in_html)
+          }
+          
+          else if(data.cost || data.cost == 0){
+            console.log(data.cost)
+            $('#delivery_department').val(data.war_ref)
+            $('.cost_delivery').html('Стоимость доставки '+data.cost)
+          } 
+        },
+        error: function(data){
+          console.log(data)
+        }
+      })
+    }
+    function is_promo(){
+      $.ajax({
+        type:'POST', url: '{% url "basket_page" %}',
+        data:{'csrfmiddlewaretoken':scrf_token, 'promocode':$('#promo_code').val(),},
+        dataType: 'json',
+        cache: false,
+        success: function(data){
+          if (data.success){
+            $('#sum_info').append('<p>Сумма с учетом скидки - '+data.success+'</p>')
+          }
+          else{
+            var $item = $('<span class="error_promo">'+data.error+'</span>');
+            $item.after('#btn_promo').delay(4000).slideUp(500, function(){
+              $item.remove();
+            });
+          }
+        }
+      })
+    }
+    $('input[name=delivery]').change(function(){
+      $('.desc_info').remove();
+      id_delivery = this.value
+      $.ajax({
+        type:'POST', url: '{% url "calc_delivery" %}',
+        data:{'csrfmiddlewaretoken':scrf_token, 'delivery_id':id_delivery,},
+        dataType: 'json',
+        cache: false,
+        success: function(data){
+          if(data.in_html){
+            console.log(this.value)
+            $('#desc_del_'+id_delivery).append(data.in_html)
+          }
+          else if(data.cost || data.cost == 0){
+            $('.cost_delivery').html('Стоимость доставки '+data.cost)
+          }
+        }
+      })
+    })
+    function create_order(){
+      var form = new FormData(document.getElementById('order_info_form'))
+      console.log(form)
+      $.ajax({
+        type: 'POST', url: '{% url "checkout_page" %}',
+        data:form,
+        dataType: 'json',
+        processData: false,
+        contentType: false,
+        cache: false,
+        success: function(data){
+          if (data){
+            $('.modal-body').html(data.msg);
+            $('#flipFlop').modal('show');
+          }
+        }
+        });
+      }
+      
+      document.getElementsByName("delivery")[0].checked = true;
+    </script>
+  {% endblock %}

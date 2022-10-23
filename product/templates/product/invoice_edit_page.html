@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load mathfilters %}
+
+{% block content %}
+    hello
+    {{order}}
+    <form action="" method="POST" name='edit_invoice'>
+        {%csrf_token%}
+        <div>
+    <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Название</th>
+            <th scope="col">Стоимость в выбранной валюте за 1шт.</th>
+            <th scope="col">Кол-во</th>
+            <th scope="col">Удалить</th>
+          </tr>
+        </thead>
+        <tbody>
+            {%for good in goods%}
+                <tr>
+                <td><a href="{% url 'product_page' good.id %}" target="_blank">{{good.title_good}}</a></td>
+                <td><input type="number" name = 'price_{{ good.id }}' value = {{good.cost|mul:order.rate_currency}}></td>
+                <td><input type="number" name = 'qty_{{ good.id }}' value = {{good.qty}}></td>
+                <td><input type="checkbox" name="del_{{ good.id }}" value="1"></td>
+                </tr>
+            {%endfor%}
+        </tbody>
+        <tbody><tr><td>
+            <input type="hidden" name="mode" value="edit_invoice">
+            <input type="submit">
+        </td></tr></tbody>
+    </table>
+    </div>
+</form>
+<form action="" method="POST">
+    {%csrf_token%}
+    <input type="number" name = 'id_good'>
+    <input type="hidden" name="mode" value="add_good">
+    <input type="submit">
+</form>
+{% endblock %}

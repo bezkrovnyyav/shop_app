@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<script>var scrf_token = $('{%csrf_token%}').val(); </script>
+<h2>Sign up</h2>
+<div class="col-3">
+  <div id='error_msg'></div>
+  <form method="post">
+    {% csrf_token %}
+    {{ form }}
+
+    <button type="submit" class="btn btn-primary mt-2">Sign Up</button>
+  </form></div>
+<script>
+  $('#id_email').change(function(){
+    var email = $(this).val();
+    $.ajax({
+      type: 'POST',
+      url: '{% url "is_user_exist" %}',
+      data:{
+        'csrfmiddlewaretoken':scrf_token,
+        'mail':email,
+      },
+      dataType: 'json',
+      cache: false,
+      success: function(data){
+        if (data.result){
+          $('#error_msg').text('email занят');
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

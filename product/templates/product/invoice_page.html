@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load mathfilters %}
+
+{% block content %}
+    Статус заказа - {{order.get_status_display}}<br>
+    Курьер - {% if order.courier %}{{order.courier.email}}{%else%} не задан {%endif%} <br>
+    Промо - {% if order.promo %}{{order.promo}}{%else%} нет {%endif%} <br>
+    Телефон - {% if order.phone %}{{order.phone}}{%else%} нет {%endif%} <br>
+    ФИО - {% if order.full_name %}{{order.full_name}}{%else%} нет {%endif%} <br>
+    Комментарий - {% if order.notes %}{{order.notes}}{%else%} нет {%endif%} <br>
+    Способ доставки - {{ order.delivery_method }} <br>
+    {% if delivery_department %}{{delivery_department|safe}} <br><br> {%endif%}
+    Стоимость доставки - {{ order.cost_of_delivery }} <br>
+
+    
+    <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Название</th>
+            <th scope="col">Стоимость в выбранной валюте за 1шт.</th>
+            <th scope="col">Кол-во</th>
+          </tr>
+        </thead>
+        <tbody>
+    
+            {%for good in goods%}
+            <tr>
+            <td><a href="{% url 'product_page' good.product.id %}" target="_blank">{{good.title_good}}</a></td>
+            <td>{{good.cost|mul:order.rate_currency}}</td>
+            <td>{{good.qty}}</td>
+            <td></td>
+            </tr>
+            {%endfor%}
+            
+            </tbody>
+        </table>
+        <form action="" method="POST">
+          {%csrf_token%}
+          <input type="hidden" name="id_order" value="{{ order.id }}">
+          {% if pay %}
+            <input type="hidden" name="mode" value = 'pay_order'>
+            <button type="submit" >Оплатить</button>
+          {%endif%}
+          {% if cancel_order %}
+            <input type="hidden" name="mode" value = 'cancel_order'>
+            <button type="submit" >Отменить</button>
+          {%endif%}
+        </form>
+        {%if digital %}
+          {%for name, link in digital.items %}
+            <a href="{{link}}">Скачать {{name}}</a><br>
+          {%endfor%}
+        {% endif %}
+{% endblock %}

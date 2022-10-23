@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="all_matrix"></div>
+    <script>
+        html_forms = ''
+        $.ajax({
+            method: 'GET', url: "{% url 'get_matrix' %}",
+            dataType: 'json', cache: false,
+            success: function(data){
+                all_matrix = data.success;
+                for (items in all_matrix){
+                    html_forms += '<form><div>' + all_matrix[items].name + '</div>' 
+                    for(var item in all_matrix[items].items){
+                        _item = all_matrix[items].items[item]
+                        html_forms += "<input type = 'text' name = 'min_val' value = '"+ _item.min_value +"'>"
+                        html_forms += "<input type = 'text' name = 'max_val' value = '"+ _item.max_value +"'>"
+                        html_forms+= "<select name='sel_"+ _item.id +"'>"
+                        html_forms+="<option value='relative'>В процентах</option>"    
+                        html_forms+="<option value='fixed'>Фиксированная</option>"    
+                        html_forms+="</select>"
+                        html_forms += "<input type = 'text' name = 'val' value = '"+ _item.value +"'>"
+                        html_forms+='<br>'
+                    }
+                    html_forms+='<button type="submit">Изменить</button>'
+                    html_forms += '</form>'
+                }
+                $('.all_matrix').append(html_forms);
+            }
+        })
+    </script>
+{% endblock %}

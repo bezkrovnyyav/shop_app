@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form action="" id='sub_form' method="POST">
+    {%csrf_token%}
+    <textarea name="text_promotions" id="" cols="90" rows="10"></textarea>
+    <button type="submit" id='form_sub'>Отправить сообщения подписчикам</button>
+</form>
+
+<br><br>
+Пример сообщения (в результате придет примерно такое, только одноразовый промокод будет у всех разный и вся инфа будет актуальной для конкретной переменной) <a target="_blank" href="https://take.ms/TVHGD">https://take.ms/TVHGD</a> :<br>
+<textarea readonly rows = 9 cols = 90 onclick='this.select()'>
+Привет, {{ "{% username %}"}}
+Твой баланс {{ "{% balance %}"}}
+У нас новый товар "{{ "{% product|1|name %}"}}" по цене {{ "{% product|1|price %}"}}
+Купить ты можешь по ссылке {{ "{% product|1|link %}"}}
+У тебя балансе сейчас: {{ "{% balance %}"}}
+</textarea>
+<br><br><br>
+Доступные переменные:<br>
+<input readonly onclick="this.select()" size = 12 value='{{ "{% username %}" }}'> - логин пользователя<br><br>
+<input readonly onclick="this.select()" size = 10 value='{{ "{% balance %}" }}'> - баланс пользователя<br><br>
+<input readonly onclick="this.select()" size = 14 value='{{ "{% oncepromo %}" }}'> - будет сгенерирован одноразовый промокод<br><br>
+<input readonly onclick="this.select()" size = 18 value='{{ "{% product|ID|type %}" }}'> - информация о товаре с ID<br>
+<span>Вместе ID - ID товара</span>
+<span>блок type, возможные значения:</span>
+<ul>
+    <li>name - название товара</li>
+    <li>oldprice - старая цена товара</li>
+    <li>price - текущая цена товара</li>
+    <li>link - ссылка на товар</li>
+</ul>
+{% endblock %}

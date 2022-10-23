@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+Как подключить уведомления?<br>
+Открой бота <a href="https://t.me/NotifyGeekBot">https://t.me/NotifyGeekBot</a> и нажми /start <br>
+После этого нажми на кнопку CREATE TOKEN и напиши боту следующее сообщение:<br>
+/connect TOKEN<br>
+Вместо TOKEN подставь свой только что полученный токен. Все, бот подключен, теперь можешь выюрать нужные уведомления и сохранить.
+<br> Если на /connect бот ничего не ответил, значит он выключен :) напиши мне, я включу, потому что бот пока чисто локально у меня работает. Если ты подключил бота и перегенерировал токен - нужно подключить заново, в противном случае не будет работать кнопка "Закрыть сеанс" (сами уведомления тебе приходить будут)
+<br><br><br><br><br>
+
+<button type="submit" onclick="get_token()">CREATE TOKEN</button>
+<div id="user_token"></div>
+<br><br>
+<form action="" id='sub_form' method="POST">
+    {%csrf_token%}
+    {{form}}
+    <button type="submit" id='form_sub'>OK</button>
+    
+</form>
+<script>
+    function set_subscribe(){
+        var data_form = $('#sub_form').serialize();
+        $.ajax({
+        type: 'POST', url: '{% url "get_token" %}',
+        dataType:'html',
+      data:{'csrfmiddlewaretoken':scrf_token, data_form},
+      dataType: 'json', cache: false,
+      success: function(data){
+        if (data.success){$('#user_token').text(data.success.key);}
+        else{console.log(data)}
+      }
+    });
+    }
+
+  function get_token(){
+    $.ajax({
+      type: 'POST', url: '{% url "get_token" %}',
+      data:{'csrfmiddlewaretoken':scrf_token,},
+      dataType: 'json', cache: false,
+      success: function(data){
+        if (data.success){$('#user_token').text(data.success.key);}
+        else{console.log(data)}
+      }
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load mathfilters %}
+
+{% block content %}
+hello
+<form action="" method="POST">
+    {%csrf_token%}
+    {% for category in categories %}
+        {{category.name}} <input type="checkbox" name="id_cat_{{category.id}}" value="{{category.id}}"><br>
+    {% endfor %}
+    <select name="type_edit">
+        <option value="fix">фиксированное</option>
+        <option value="relative">в процентах</option>
+    </select>
+    <input type="number" name="value_edit_price" step=0.01 value="0"><br>
+    Перенести поле "Цена" в "Старая цена": <input type="checkbox" name="is_edit_old_price" id="">
+    <input type="submit" value="Edit">
+</form>
+{% endblock %}

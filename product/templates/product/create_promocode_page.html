@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form action="" method="POST">
+    {%for field in form%}
+        {%csrf_token%}
+        {{field}}
+        {%endfor%}
+    <input type="submit" value="Отправить">
+</form>    
+{% endblock %}

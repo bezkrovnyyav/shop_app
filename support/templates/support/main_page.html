@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form action="" method="POST">
+    {% csrf_token %}
+    Тема письма: <input type="text" name='subject'><br>
+    Введите сообщение:<br>
+    <textarea name="message" id="" cols="30" rows="10"></textarea>
+    <button>Отправить</button>
+</form>
+
+<p>My tickets:</p>
+{% for ticket in tickets %}
+    <a href="{%url 'answer_ticket_page' ticket.id%}">{{ticket.title}}</a>
+{%endfor%}
+{% endblock %}

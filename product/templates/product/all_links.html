@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Все ключевые ссылки:</h1>
+<p>Интернет магазин:</p>
+<ul>
+    <li><a href="{% url 'main_page' %}">Главная страница</a></li>
+    <li><a href="{% url 'all_product_page' %}">Все товары</a></li>
+    <li><a href="{% url 'checkout_page' %}">Корзина</a></li>
+    <li><a href="{% url 'invoices_page' %}">Все заказы</a></li>
+    <li><a href="{% url 'invoices_page' %}">Заказы курьера (отображаются только те заказы, для которых ТЫ задан как курьер.)</a></li>
+    <li><a href="{% url 'create_promocode_page' %}">Создание промокодов</a></li>
+    <li><a href="{% url 'edit_price_in_category' %}">Массовое изменение цен в категориях</a></li>
+    <li><a href="{% url 'export_products' %}">Экспорт товаров</a></li>
+    <li><a href="{% url 'import_products' %}">Импорт товаров</a></li>
+    <li><a href="{% url 'wishlist' %}">Список желаний</a></li>
+    <li><a href="{% url 'parser_rozetka' %}">Парсер розетки</a></li>
+    <li><a href="{% url 'update_cities_np' %}">Обновление городов Новой Почты (не нажимать просто так!!)</a></li>
+    <li><a href="{% url 'update_warehouses_np' %}">Обновление отделений Новой Почты (не нажимать просто так!!)</a></li>
+</ul>
+<p>Служба поддержки:</p>
+<ul>
+    <li><a href="{% url 'support_main_page' %}">Мои тикеты</a></li>
+    <li><a href="{% url 'all_ticket_page' %}">Все тикеты</a></li>
+</ul>
+<p>Подписки:</p>
+<ul>
+    <li><a href="{% url 'subscribe' %}">Подписки</a></li>
+    <li><a href="{% url 'mailing_promotions' %}">Промо рассылка</a></li>
+</ul>
+{% endblock %}

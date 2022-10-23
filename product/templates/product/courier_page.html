@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load mathfilters %}
+
+{% block content %}
+<table class="table">
+    <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">user</th>
+        <th scope="col">PROMO</th>
+        <th scope="col">валюта</th>
+        <th scope="col">стоимость с учетом курса</th>
+        <th scope="col">стоимость доставки в валюте</th>
+        <th scope="col">сумма к оплате</th>
+        <th scope="col">status</th>
+        <th scope="col">Курьер</th>
+      </tr>
+    </thead>
+    <tbody>
+
+        {%for invoice in all_invoices%}
+        <tr>
+        <td><a href="{% url 'invoice_page' invoice.id %}" target="_blank">{{invoice.id}}</a></td>
+        <td>{{invoice.user}}</td>
+        <td>{{invoice.promo}}</td>
+        <td>{{invoice.currency}}</td>
+        <td>{{invoice.total_amount|mul:invoice.rate_currency}}<br><small title='в у.е.'>{{invoice.total_amount}}</small></td>
+        <td>{{ invoice.cost_of_delivery|mul:invoice.rate_currency}}</td>
+        <td>{{ invoice.total_amount|mul:invoice.rate_currency}}</td>
+        <td>
+            <form action="{% url 'change_invoice' %}" method="POST" id='change_status_{{invoice.id}}'>
+                {%csrf_token%}
+                <input type="hidden" name='id_order' value={{invoice.id}}>
+                <select onchange="document.getElementById('change_status_{{invoice.id}}').submit()" name='status'>
+                    {% for x,y in all_status.fields.status.choices %}
+                    <option value="{{ x }}"{% if invoice.get_status_display == y %} selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+            </select></form>
+        </td>
+        <td> {{invoice.courier.email}}
+      </td>
+        </tr>
+        {%endfor%}
+        
+        </tbody>
+    </table>
+<script>
+
+  function select_courier(id_order){
+    var id_courier = $('#select_courier_order_'+id_order).val()
+    $.ajax({
+      type: 'POST', url: '{% url "select_courier" %}',
+            data:{'csrfmiddlewaretoken':scrf_token, 'order':id_order, 'courier':id_courier,},
+            dataType: 'json',
+            cache: false,
+            success: function(data){
+              
+                if (data.success){
+                  $('#btn_courier_'+id_order).after(data.success);
+                }
+                else{
+                  $('#btn_courier_'+id_order).after(data.error);
+                }
+            }
+    })
+  }
+  </script>
+{% endblock %}

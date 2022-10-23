@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+Введи ссылку на прайс в Google sheet:
+<input type="text" id = 'link_to_gsheets'>
+<button type="submit" id = 'btn_import' onclick="import_products('import')">IMPORT</button>
+<button type="submit" id = 'btn_preview' onclick="import_products('preview')">Предпросмотр</button>
+
+<div id='result_msg'></div>
+<script>
+    function import_products(type){
+        var btn_import = $('#btn_import');
+        btn_import.prop('disabled', true);
+        var item = $('#result_msg');
+        item.css('display', 'block');
+        item.css('color', '');
+        $('#result_msg').text('Выполняется проверка файла...');
+        var link = $('#link_to_gsheets').val();
+        $.ajax({
+            type: 'POST', url: '{% url "import_products" %}',
+            data:{'csrfmiddlewaretoken':scrf_token, 'type':type, 'link':link},
+            dataType: 'json',
+            cache: false,
+            success: function(data){
+                btn_import.prop('disabled', false);
+                if (data.error){
+                    item.css('color','#ff0000');
+                    item.html(data.error).delay(4000).slideUp(500, function(){item.html();});
+                }
+                if (data.success) {
+                    var new_item = item.html(data.success);
+                    if (!data.preview){new_item.delay(4000).slideUp(500, function(){item.html();});
+                }
+                } else {console.log('error');}
+            }
+        });
+    }
+</script>
+{% endblock %}

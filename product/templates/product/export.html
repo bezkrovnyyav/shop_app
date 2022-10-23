@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+В какой формат сделать экспорт:
+<button type="submit" onclick="export_products('csv')">CSV</button>
+<button type="submit" onclick="export_products('xlsx')">XLSX</button>
+<br>
+<span class = 'msg'></span>
+<script>
+    function export_products(type){
+        $('.msg').html('Выполняется экспорт...')
+        $.ajax({
+            type: 'POST', url: '{% url "export_products" %}',
+            data:{'csrfmiddlewaretoken':scrf_token, 'type':type},
+            dataType: 'json',
+            cache: false,
+            success: function(data){
+                if (data.success){
+                    $('.msg').html('Ссылка на файл: '+data.success)
+                }
+                else {
+                    $('.msg').html('Упс! Что-то пошло не так...')
+                    
+                }
+            }
+        });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="background-color: #cccccc;">    
+    <p><a href="?type=new">New</a></p>
+    <p><a href="?type=open">Open</a></p>
+</div>
+    
+{% for ticket in tickets%}
+    <a href="{% url 'answer_ticket_support_page' ticket.id %}">{{ticket.title}}</a>
+{%endfor%}
+{% endblock %}

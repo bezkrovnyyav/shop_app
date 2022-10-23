@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card-group m-3" id='product_list'>
+{{products|safe}}
+</div>
+
+<div class="pagination">  
+    {{pagination|safe}}
+</div>
+<script>
+    function spage(page){
+        $.ajax({
+                type: 'POST', url: '{% url "all_product_page" %}',
+                data:{'csrfmiddlewaretoken':scrf_token, 'page':page,},
+                dataType: 'json',
+                cache: false,
+                success: function(data){
+                    if (data.success){
+                        $('#product_list').html(data.success)
+                        $('.pagination').html(data.pagination)
+                    }
+                }
+            });
+    }
+    function add2basket(id){
+            var cnt = $('#cnt_product').val();
+            $.ajax({
+                type: 'POST', url: '{% url "basket_page" %}',
+                data:{'csrfmiddlewaretoken':scrf_token, 'cnt':cnt, 'type':'add', 'id':id,},
+                dataType: 'json',
+                cache: false,
+                success: function(data){
+                    if (data.success){
+                        var $item = $('<span class="msg">'+ data.success +'</span>');
+                        $item.appendTo('.form_add_basket').delay(4000).slideUp(500, function(){
+                                $item.remove();
+                        });
+                    }
+                }
+            });
+    }
+</script>
+{% endblock %}
